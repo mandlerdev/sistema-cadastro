@@ -20,6 +20,8 @@ def salvar_dados():
     try:
         with open (ARQUIVOS_DADOS, "w", encoding="utf-8") as f:
             json.dump(usuarios, f, indent=4, ensure_ascii= False)
+    except PermissionError:
+        print("Erro: Sem permissão para salvar o arquivo. Tente rodar como administrador.")       
     except Exception as e:
         print(f"Erro ao salvar dados: {e}")
 
@@ -32,70 +34,82 @@ def menu():
     print("5 - Remover usuário")
     print("6 - Sair")
 
-def editar_usuario(): 
+def editar_usuario():
     if not usuarios:
-        print("\n Ainda não tem nada há ser editado.")
+        print("Não há usuários.")
         return
-    
-    while True:
-        email_busca = input("\Digite o email do usuário que deseja editar ou 'sair: ").strip().lower()
-        if email_busca == 'sair':
-            return
-        
-        usuario_encontrado = None
-        for u in usuarios:
-            if u['email'] == email_busca:
-                usuario_encontrado = u
-                break
 
-        if usuario_encontrado:
-            break
-        else:
-            print("\nUsuário não encontrado! Tente novamente ou digite 'sair'.")
+    usuario = encontrar_usuario()
 
-    print(f"Edição de: {usuario_encontrado['nome']} ")
+    if not usuario:
+        return
 
-    while True:
-            novo_nome = input(f"Digite o novo nome [{usuario_encontrado['nome']}]: ").strip()
-            if not novo_nome:
-                break
-            if re.match(r'^[A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}$', novo_nome):
-                usuario_encontrado['nome'] = novo_nome
-                break
-            print("Nome inválido!")
-
-    while True: 
-            nova_idade_str = input(f"Digite a nova idade [{usuario_encontrado['idade']}]: ").strip()
-            if not nova_idade_str:
-                break
-            try:
-                nova_idade = int (nova_idade_str)
-                if 0 <= nova_idade <= 120:
-                    usuario_encontrado['idade'] = nova_idade
-                    break
-                print("Idade entre 0 e 120.")
-            except ValueError:
-                print("Digite um número.")
-
-    while True:
-            novo_email = input(f"Novo email [{usuario_encontrado['email']}]: ").strip().lower()
-            if not novo_email:
-                break
-            if re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', novo_email):
-                ja_existe = any (u['email'] == novo_email for u in usuarios if u != usuario_encontrado)
-                if ja_existe:
-                    print("Email já cadastrado em outra conta!")
-                else:
-                    usuario_encontrado['email'] = novo_email
-                    break
-            else: 
-                print("Email inválido!")
+    editar_nome(usuario)
+    editar_idade(usuario)
+    editar_email(usuario)
 
     salvar_dados()
-    print("\n Dados atualizados!")
-            
-    
+    print("Dados atualizados!")
 
+def encontrar_usuario():
+    while True:
+        email_busca = input("Digite o email do usuário para ed ou 'sair': ").strip().lower()
+
+        if email_busca == "sair":
+            return None
+
+        for usuario in usuarios:
+            if usuario["email"] == email_busca:
+                return usuario
+
+        print("Usuário não encontrado.")
+
+def editar_nome(usuario):
+    while True:
+        novo_nome = input(f"Novo nome [{usuario['nome']}]: ").strip()
+
+        if not novo_nome:
+            return
+
+        if re.match(r'^[A-Za-zÀ-ÖØ-öø-ÿ\s]{2,}$', novo_nome):
+            usuario['nome'] = novo_nome
+            return
+
+        print("Nome inválido!")
+
+def editar_idade(usuario):
+    while True:
+        nova_idade_str = input(f"Nova idade [{usuario['idade']}]: ").strip()
+
+        if not nova_idade_str:
+            return
+
+        try:
+            nova_idade = int(nova_idade_str)
+
+            if 0 <= nova_idade <= 120:
+                usuario['idade'] = nova_idade
+                return
+
+            print("Idade deve ser entre 0 e 120.")
+        except ValueError:
+            print("Digite um número válido para a idade.")
+
+def editar_email(usuario):
+    while True:
+        novo_email = input(f"Novo email [{usuario['email']}]: ").strip().lower()
+
+        if not novo_email:
+            return
+
+        if re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', novo_email):
+            if any(u['email'] == novo_email for u in usuarios if u != usuario):
+                print("Email já cadastrado em outra conta!")
+            else:
+                usuario['email'] = novo_email
+                return
+        else:
+            print("Email inválido!")
         
 def cadastrar_usuario():
     print("\n------ Novo cadastro ------")
@@ -133,8 +147,6 @@ def cadastrar_usuario():
     salvar_dados() #Salva o usuario cadastrado no arquivo .json criado
     print("Usuário cadastrado com sucesso!")
 
-
-
 def listar_usuarios():
     if not usuarios:
         print("Nenhum usuário cadastrado.")
@@ -142,8 +154,7 @@ def listar_usuarios():
     
     print("\n--- Lista de Usuários ---")
     for i, u in enumerate(usuarios, 1):
-        print(f"{i}. Nome: {u['nome']} | Email: {u['email']} | Idade: {u['idade']}")
-
+        print(f"\n{i}. Nome: {u['nome']} | Email: {u['email']} | Idade: {u['idade']}")
 
 def buscar_usuarios():
     termo = input("\nDigite o nome ou email para buscar: ").lower()
@@ -155,7 +166,6 @@ def buscar_usuarios():
             print(f"-> Nome: {u['nome']} | Email: {u['email']}")
     else:
         print("Nenhum usuário corresponde à busca.")
-
 
 def remover_usuarios():
     if not usuarios:
@@ -184,8 +194,6 @@ def remover_usuarios():
         else:
             print("Email não encontrado no sistema tente novamente.")
     
-
-
 def main(): 
         carregar_dados()
         while True: 
@@ -201,3 +209,7 @@ def main():
                         
 if __name__ == "__main__":
     main()
+
+
+
+
