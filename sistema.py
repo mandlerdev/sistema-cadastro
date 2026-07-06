@@ -53,7 +53,7 @@ def editar_usuario():
 
 def encontrar_usuario():
     while True:
-        email_busca = input("Digite o email do usuário para ed ou 'sair': ").strip().lower()
+        email_busca = input("Digite o email do usuário para editar ou 'sair': ").strip().lower()
 
         if email_busca == "sair":
             return None
@@ -61,8 +61,8 @@ def encontrar_usuario():
         for usuario in usuarios:
             if usuario["email"] == email_busca:
                 return usuario
-
-        print("Usuário não encontrado.")
+                
+            else print("Usuário não encontrado.")
 
 def editar_nome(usuario):
     while True:
